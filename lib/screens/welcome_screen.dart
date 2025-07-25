@@ -11,7 +11,6 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // استخدم scaffold بدل container علشان دعم أفضل لل safe areas
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

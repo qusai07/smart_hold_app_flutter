@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_hold_app/Security/SecureStorage.dart';
 import 'package:smart_hold_app/Services/BackEndService/ApiAuthentication.dart';
 import 'package:smart_hold_app/Services/BackEndService/ApiService.dart';
+import 'package:smart_hold_app/screens/homeScreen.dart';
 import 'package:smart_hold_app/screens/signupScreen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -72,7 +73,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (mounted) {
-      Navigator.pushReplacementNamed(context, '/UserProfile');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              HomeScreen(nationalNumber: '0790150089', token: token),
+        ),
+      );
     }
   }
 
@@ -89,7 +96,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> checkExistingToken() async {
     final token = await secureStorage.getAccessToken();
     if (token != null) {
-      Navigator.pushReplacementNamed(context, '/UserProfile');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              HomeScreen(nationalNumber: '0790150089', token: token),
+        ),
+      );
       setState(() {
         isLoading = false;
       });

@@ -12,6 +12,11 @@ class ApiConstants {
   static String get uploadProfilePicture =>
       ApiConfig.buildPath('Auth/uploadProfilePicture');
 
-  // مثال لنقاط نهاية أخرى
+  static String get getViolationsForUser =>
+      ApiConfig.buildPath('Violations/api/GetViolationsForUser');
+
+  static String get getMyVehical =>
+      ApiConfig.buildPath('Vehicles/GetMyVehical');
+
   static String get userProfile => ApiConfig.buildPath('User/Profile');
 }

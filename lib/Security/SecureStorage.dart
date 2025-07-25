@@ -25,6 +25,14 @@ class SecureStorage {
     }
   }
 
+  Future<void> write({required String key, required String value}) async {
+    await secureStorage.write(key: key, value: value);
+  }
+
+  Future<String?> read({required String key}) async {
+    return await secureStorage.read(key: key);
+  }
+
   Future<void> setVersion(String? value) async {
     try {
       await secureStorage.write(key: _version, value: value);

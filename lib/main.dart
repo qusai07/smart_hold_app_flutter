@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:smart_hold_app/Models/UserProfile.dart';
 import 'package:smart_hold_app/Security/SecureStorage.dart';
-import 'package:smart_hold_app/Security/TokenManager.dart';
 import 'package:smart_hold_app/screens/UserProfile.dart';
+import 'package:smart_hold_app/screens/homeScreen.dart';
 import 'package:smart_hold_app/screens/signupScreen.dart';
 import 'package:smart_hold_app/screens/welcome_screen.dart';
 import 'package:smart_hold_app/screens/login_screen.dart';
@@ -39,6 +38,15 @@ class MyApp extends StatelessWidget {
             return const LoginScreen(); // Redirect to login if no token
           },
         ),
+        '/homeScreen': (context) {
+          final args =
+              ModalRoute.of(context)!.settings.arguments
+                  as Map<String, dynamic>;
+          return HomeScreen(
+            nationalNumber: args['nationalNumber'],
+            token: args['token'],
+          );
+        },
       },
     );
   }

@@ -73,7 +73,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           );
         }
       } else {
-        setState(() => errorMessage = response.message ?? 'Signup failed');
+        setState(() => errorMessage = response.message ?? 'SignupFailed');
       }
     } catch (e) {
       setState(() => errorMessage = "Failed Sign Up");
