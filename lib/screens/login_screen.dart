@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_hold_app/Models/login_model.dart';
-import 'package:smart_hold_app/Service/Api_Services/api_service.dart';
+import 'package:smart_hold_app/Security/SecureStorage.dart';
+import 'package:smart_hold_app/Services/BackEndService/ApiAuthentication.dart';
+import 'package:smart_hold_app/Services/BackEndService/ApiService.dart';
+import 'package:smart_hold_app/screens/signupScreen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,58 +13,86 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController userNameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-
+  final formKey = GlobalKey<FormState>();
   bool isLoading = false;
   String? errorMessage;
 
+  final TextEditingController usernameOrEmailController =
+      TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  late final ApiAuthentication authService;
+  late final SecureStorage secureStorage;
+  late final ApiService apiService;
+
+  @override
+  void initState() {
+    super.initState();
+
+    apiService = ApiService();
+    secureStorage = SecureStorage();
+    authService = ApiAuthentication(
+      apiService: apiService,
+      secureStorage: secureStorage,
+    );
+
+    checkExistingToken();
+  }
+
   Future<void> login() async {
+    usernameOrEmailController.text.trim();
+    passwordController.text.trim();
+
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
 
-    final api;
-
-    final loginRequest = LoginRequest(
-      userName: userNameController.text,
-      password: passwordController.text,
-    );
-
     try {
-      final response = await api.post(
-        '/smart/api/Auth/Login',
-        loginRequest.toJson(),
+      final response = await authService.login(
+        usernameOrEmail: usernameOrEmailController.text.trim(),
+        password: passwordController.text.trim(),
       );
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final loginResponse = LoginResponse.fromJson(data);
+      final token = response.data;
+      final refreshToken = token;
+      await handleLoginSuccess(token, refreshToken);
+    } on DioException catch (e) {
+      final errorMsg = e.response?.data['message'] ?? 'Something Error';
+      setState(() => errorMessage = errorMsg);
+    } catch (e) {
+      errorMessage = _getErrorMessage(e);
+    }
+  }
 
-        if (loginResponse.token.isNotEmpty) {
-          print('Login success, token: ${loginResponse.token}');
-          // Navigator.pushReplacementNamed(context, '/home');
-        } else {
-          setState(() {
-            errorMessage = loginResponse.message ?? "Unknown error";
-          });
-        }
-      } else {
-        setState(() {
-          errorMessage = "Login failed. Status code: ${response.statusCode}";
-        });
-      }
-    } catch (e, stacktrace) {
-      if (e is DioException) {
-        print('DioException: ${e.message}');
-        print('Response data: ${e.response?.data}');
-        print('Status code: ${e.response?.statusCode}');
-      } else {
-        print('Unknown error: $e');
-      }
+  Future<void> handleLoginSuccess(String token, String refreshToken) async {
+    await secureStorage.saveTokens(
+      accessToken: token,
+      refreshToken: refreshToken,
+    );
 
-      print('Stacktrace: $stacktrace');
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/UserProfile');
+    }
+  }
+
+  String _getErrorMessage(dynamic error) {
+    if (error.toString().contains('401')) {
+      return 'Email / Password Invalid';
+    } else if (error.toString().contains('404')) {
+      return 'Server Not Avaliable';
+    } else {
+      return 'Something Error';
+    }
+  }
+
+  Future<void> checkExistingToken() async {
+    final token = await secureStorage.getAccessToken();
+    if (token != null) {
+      Navigator.pushReplacementNamed(context, '/UserProfile');
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -74,134 +104,157 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Logo with shadow and rounded circle
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.blue.shade100,
-                        spreadRadius: 5,
-                        blurRadius: 15,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: Icon(
-                      Icons.directions_car_filled,
-                      size: 80,
-                      color: Colors.blue,
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Logo with shadow
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.shade100,
+                          spreadRadius: 5,
+                          blurRadius: 15,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Title
-                const Text(
-                  "Welcome Back!",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0D47A1),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                const Text(
-                  "Please login to continue",
-                  style: TextStyle(fontSize: 16, color: Color(0xFF54709A)),
-                ),
-                const SizedBox(height: 32),
-
-                // UserName TextField
-                TextField(
-                  controller: userNameController,
-                  decoration: InputDecoration(
-                    labelText: 'UserName / National ID',
-                    prefixIcon: const Icon(Icons.person_outline),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Password TextField
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Error message
-                if (errorMessage != null)
-                  Text(
-                    errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-
-                const SizedBox(height: 20),
-
-                // Login Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: isLoading ? null : login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0D47A1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    child: const Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Icon(
+                        Icons.directions_car_filled,
+                        size: 80,
+                        color: Colors.blue,
                       ),
                     ),
-                    child: isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Login',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                   ),
-                ),
+                  const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
-
-                // Sign Up link
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/signup');
-                  },
-                  child: const Text(
-                    "Don't have an account? Sign Up",
+                  // Title
+                  const Text(
+                    "Welcome Back!",
                     style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
                       color: Color(0xFF0D47A1),
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+
+                  const Text(
+                    "Please login to continue",
+                    style: TextStyle(fontSize: 16, color: Color(0xFF54709A)),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Username/Email Field
+                  TextFormField(
+                    controller: usernameOrEmailController,
+                    decoration: InputDecoration(
+                      labelText: 'Username / Email',
+                      prefixIcon: const Icon(Icons.person),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter username or email';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Password Field
+                  TextFormField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: const Icon(Icons.lock),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Error Message
+                  if (errorMessage != null)
+                    Text(
+                      errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+
+                  const SizedBox(height: 20),
+
+                  // Login Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D47A1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Login',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Sign Up Link
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignUpScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      "Don't have an account? Sign Up",
+                      style: TextStyle(
+                        color: Color(0xFF0D47A1),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

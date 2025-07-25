@@ -15,13 +15,21 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      id: json['ID'] as String,
-      fullName: json['FullName'] as String,
-      userName: json['UserName'] as String,
-      emailAddress: json['EmailAddress'] as String,
-      isActive: json['IsActive'] as bool,
+      id: json['id'] as String? ?? '',
+      fullName: json['fullName'] as String? ?? '',
+      userName: json['userName'] as String? ?? '',
+      emailAddress: json['emailAddress'] as String? ?? '',
+      isActive: json['isActive'] as bool? ?? false,
     );
   }
 
-  toJson() {}
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'fullName': fullName,
+      'userName': userName,
+      'emailAddress': emailAddress,
+      'isActive': isActive,
+    };
+  }
 }

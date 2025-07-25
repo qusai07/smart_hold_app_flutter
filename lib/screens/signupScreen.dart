@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_hold_app/Models/signup_model.dart';
-import 'package:smart_hold_app/Service/Api_Services/api_service.dart';
+import 'package:smart_hold_app/Services/BackEndService/ApiAuthentication.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -10,13 +10,17 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController fullNameController = TextEditingController();
   final TextEditingController userNameController = TextEditingController();
+  final TextEditingController mobileNumberController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController nationalNumberController =
       TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+
+  late final ApiAuthentication authService;
 
   bool isLoading = false;
   String? errorMessage;
@@ -26,67 +30,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
       isLoading = true;
       errorMessage = null;
     });
-
-    if (passwordController.text != confirmPasswordController.text) {
-      setState(() {
-        errorMessage = "Passwords do not match";
-        isLoading = false;
-      });
-      return;
-    }
-
-    if (userNameController.text.isEmpty ||
-        emailController.text.isEmpty ||
-        nationalNumberController.text.isEmpty ||
-        passwordController.text.isEmpty) {
-      setState(() {
-        errorMessage = "Please fill all the fields";
-        isLoading = false;
-      });
-      return;
-    }
-
-    final SignupRequest = SignUpRequest(
-      userName: userNameController.text.trim(),
-      email: emailController.text.trim(),
-      nationalId: nationalNumberController.text.trim(),
-      password: passwordController.text,
-    );
-
-    final api;
-
     try {
-      final response = await api.post(
-        '/api/Auth/SignUp',
-        SignupRequest.toJson(),
+      final request = SignUpRequest(
+        fullName: fullNameController.text.trim(),
+        userName: userNameController.text.trim(),
+        mobileNumber: mobileNumberController.text.trim(),
+        emailAddress: emailController.text.trim(),
+        nationalNumber: nationalNumberController.text.trim(),
+        password: passwordController.text.trim(),
+        userRole: false,
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data;
-        if (data['success'] == true) {
-          if (mounted) {
-            Navigator.pop(context);
-          }
-        } else {
-          setState(() {
-            errorMessage = data['message'] ?? "Registration failed";
-          });
-        }
-      } else {
+      if (passwordController.text != confirmPasswordController.text) {
         setState(() {
-          errorMessage = "Error: ${response.statusCode}";
-        });
-      }
-    } catch (e) {
-      setState(() {
-        errorMessage = "Error: $e";
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
+          errorMessage = "Passwords do not match";
           isLoading = false;
         });
+        return;
       }
+      if (userNameController.text.isEmpty ||
+          emailController.text.isEmpty ||
+          nationalNumberController.text.isEmpty ||
+          passwordController.text.isEmpty) {
+        setState(() {
+          errorMessage = "Please fill all the fields";
+          isLoading = false;
+        });
+        return;
+      }
+
+      final response = await authService.signUp(request);
+
+      if (response.success) {
+        if (mounted) {
+          Navigator.pushNamed(
+            context,
+            '/verify-otp',
+            arguments: {
+              'otpCode': response.OtpCode,
+              'email': emailController.text.trim(),
+            },
+          );
+        }
+      } else {
+        setState(() => errorMessage = response.message ?? 'Signup failed');
+      }
+    } catch (e) {
+      setState(() => errorMessage = "Failed Sign Up");
     }
   }
 

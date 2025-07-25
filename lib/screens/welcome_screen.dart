@@ -27,7 +27,7 @@ class WelcomeScreen extends StatelessWidget {
                 title: "Smart Vehicle Hold",
                 body:
                     "Secure your vehicle at home instead of traditional impoundment.",
-                image: buildImage("assets/images/welcome1.png"),
+                image: buildImage("assets/images/welcome2.png"),
                 decoration: getPageDecoration(),
               ),
               PageViewModel(
