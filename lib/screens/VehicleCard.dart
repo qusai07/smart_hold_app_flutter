@@ -4,7 +4,6 @@ import 'package:smart_hold_app/Models/Vehicles/ResponseModel/VehicalResponse.dar
 
 class VehicleCard extends StatelessWidget {
   final VehicleResponse vehicle;
-
   const VehicleCard({super.key, required this.vehicle});
 
   @override

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:smart_hold_app/Language/app_localizations.dart';
 import 'package:smart_hold_app/Models/signup_model.dart';
+import 'package:smart_hold_app/Security/SecureStorage.dart';
 import 'package:smart_hold_app/Services/BackEndService/ApiAuthentication.dart';
+import 'package:smart_hold_app/Services/BackEndService/ApiService.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -21,6 +24,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       TextEditingController();
 
   late final ApiAuthentication authService;
+  late final ApiService apiService;
 
   bool isLoading = false;
   String? errorMessage;
@@ -30,6 +34,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       isLoading = true;
       errorMessage = null;
     });
+
     try {
       final request = SignUpRequest(
         fullName: fullNameController.text.trim(),
@@ -38,7 +43,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         emailAddress: emailController.text.trim(),
         nationalNumber: nationalNumberController.text.trim(),
         password: passwordController.text.trim(),
-        userRole: false,
+        userRole: 2,
       );
 
       if (passwordController.text != confirmPasswordController.text) {
@@ -48,6 +53,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         });
         return;
       }
+
       if (userNameController.text.isEmpty ||
           emailController.text.isEmpty ||
           nationalNumberController.text.isEmpty ||
@@ -61,53 +67,100 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       final response = await authService.signUp(request);
 
-      if (response.success) {
-        if (mounted) {
-          Navigator.pushNamed(
-            context,
-            '/verify-otp',
-            arguments: {
-              'otpCode': response.OtpCode,
-              'email': emailController.text.trim(),
-            },
-          );
-        }
-      } else {
-        setState(() => errorMessage = response.message ?? 'SignupFailed');
+      if (mounted) {
+        Navigator.pushNamed(
+          context,
+          '/verify-otp',
+          arguments: {'id': response.data.Id, 'otpCode': response.data.otpCode},
+        );
       }
     } catch (e) {
-      setState(() => errorMessage = "Failed Sign Up");
+      setState(() => errorMessage = e.toString());
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
   @override
   void dispose() {
     userNameController.dispose();
+    fullNameController.dispose();
     emailController.dispose();
     nationalNumberController.dispose();
+    mobileNumberController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
   }
 
   @override
+  void initState() {
+    super.initState();
+    apiService = ApiService();
+    authService = ApiAuthentication(
+      apiService: apiService,
+      secureStorage: SecureStorage(),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool obscureText = false,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF2C5364).withOpacity(0.7),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        obscureText: obscureText,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white70),
+          prefixIcon: Icon(icon, color: Colors.white70),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.transparent,
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F6FF),
+      backgroundColor: const Color(0xFF203A43),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Logo with shadow
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xFF2C5364),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.blue.withOpacity(0.3),
+                        color: const Color.fromARGB(255, 52, 100, 120),
                         spreadRadius: 5,
                         blurRadius: 15,
                         offset: const Offset(0, 4),
@@ -119,137 +172,139 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: Icon(
                       Icons.person_add_alt_1_outlined,
                       size: 80,
-                      color: Colors.blue,
+                      color: Color.fromARGB(255, 108, 167, 193),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  "Create Account",
+                Text(
+                  AppLocalizations.of(context)!.label_create_account,
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0D47A1),
+                    color: Color.fromARGB(255, 108, 167, 193),
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  "Fill in the details to get started",
-                  style: TextStyle(fontSize: 16, color: Color(0xFF54709A)),
+                Text(
+                  AppLocalizations.of(context)!.body_create_account,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color.fromARGB(255, 108, 167, 193),
+                  ),
                 ),
                 const SizedBox(height: 32),
-                TextField(
+
+                // TextFields
+                _buildTextField(
                   controller: userNameController,
-                  decoration: InputDecoration(
-                    labelText: 'User Name',
-                    prefixIcon: const Icon(Icons.person_outline),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: const Icon(Icons.email_outlined),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: nationalNumberController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'National ID',
-                    prefixIcon: const Icon(Icons.badge_outlined),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: confirmPasswordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+                  label: AppLocalizations.of(context)!.userName_textFields,
+
+                  icon: Icons.person_outline,
                 ),
                 const SizedBox(height: 16),
+                _buildTextField(
+                  controller: fullNameController,
+                  label: AppLocalizations.of(context)!.fullName_textFields,
+
+                  icon: Icons.person_outline,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: emailController,
+                  label: AppLocalizations.of(context)!.email_textFields,
+
+                  icon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: nationalNumberController,
+                  label: AppLocalizations.of(context)!.nationalId_textFields,
+
+                  icon: Icons.badge_outlined,
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: mobileNumberController,
+                  label: AppLocalizations.of(context)!.phoneNumber_textFields,
+                  icon: Icons.phone_outlined,
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: passwordController,
+                  label: AppLocalizations.of(context)!.password_textFields,
+
+                  icon: Icons.lock_outline,
+                  obscureText: true,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: confirmPasswordController,
+                  label: AppLocalizations.of(
+                    context,
+                  )!.confirmPassword_textFields,
+
+                  icon: Icons.lock_outline,
+                  obscureText: true,
+                ),
+                const SizedBox(height: 16),
+
+                // Error message
                 if (errorMessage != null)
                   Text(
                     errorMessage!,
-                    style: const TextStyle(color: Colors.red),
+                    style: const TextStyle(color: Colors.redAccent),
                     textAlign: TextAlign.center,
                   ),
                 const SizedBox(height: 20),
+
+                // Sign Up Button
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
                     onPressed: isLoading ? null : signUp,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0D47A1),
+                      backgroundColor: const Color.fromRGBO(
+                        108,
+                        167,
+                        193,
+                        1,
+                      ), // main button color
+                      shadowColor: Colors.black.withOpacity(
+                        0.5,
+                      ), // shadow under the button
+                      elevation: 8, // make the shadow visible
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Sign Up',
+                        : Text(
+                            AppLocalizations.of(context)!.signUp,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: Colors.white, // text color
                             ),
                           ),
                   ),
                 ),
                 const SizedBox(height: 24),
+
+                // Login link
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text(
-                    "Already have an account? Login",
+                  child: Text(
+                    "${AppLocalizations.of(context)!.alreadyHaveAccount} ${AppLocalizations.of(context)!.button_Login}",
                     style: TextStyle(
-                      color: Color(0xFF0D47A1),
+                      color: Color.fromARGB(255, 108, 167, 193),
                       fontWeight: FontWeight.w600,
                     ),
                   ),

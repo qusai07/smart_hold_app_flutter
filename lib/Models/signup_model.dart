@@ -7,7 +7,7 @@ class SignUpRequest {
   final String emailAddress;
   final String nationalNumber;
   final String password;
-  final bool userRole;
+  final int userRole;
 
   SignUpRequest({
     required this.fullName,
@@ -31,21 +31,18 @@ class SignUpRequest {
 }
 
 class SignUpResponse {
-  final bool success;
-  final String OtpCode;
-  final String message;
+  final String Id;
+  final String otpCode;
 
   SignUpResponse({
-    required this.success,
-    required this.OtpCode,
-    required this.message,
+    required this.Id,
+    required this.otpCode,
   });
 
   factory SignUpResponse.fromJson(Map<String, dynamic> json) {
     return SignUpResponse(
-      success: json['success'] ?? false,
-      OtpCode: json['OtpCode'],
-      message: json['message'],
+      otpCode: json['otpCode'],
+      Id: json['id'],
     );
   }
 }

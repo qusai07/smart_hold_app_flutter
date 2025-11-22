@@ -73,6 +73,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> loadUserProfile() async {
+    setState(() {
+      isLoading = true;
+      error = null;
+    });
+
     try {
       final fetchedProfile = await userService.fetchUserProfile();
       setState(() {
@@ -177,31 +182,53 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return CustomScrollView(
       slivers: [
         SliverAppBar(
-          expandedHeight: 180,
+          pinned: true,
+          expandedHeight: 220,
+          backgroundColor: Colors.transparent,
           flexibleSpace: FlexibleSpaceBar(
             background: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
+                  colors: [Colors.blue.shade700, Colors.blue.shade400],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Colors.blue[600]!, Colors.blue[400]!],
                 ),
               ),
-              child: Center(
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.white.withOpacity(0.3),
-                  child: Text(
-                    profile!.fullName.isNotEmpty
-                        ? profile!.fullName[0].toUpperCase()
-                        : '?',
-                    style: const TextStyle(
-                      fontSize: 36,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.white,
+                    child: Text(
+                      profile!.userName.length >= 2
+                          ? profile!.userName.substring(0, 2).toUpperCase()
+                          : profile!.userName.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  Text(
+                    profile!.fullName,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    profile!.emailAddress,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -224,50 +251,40 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
+  // ✅ بطاقة Profile Card
   Widget buildProfileCard() {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shadowColor: Colors.blue.shade100,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            buildProfileItem(
-              Icons.person_outline,
-              'Full Name',
-              profile!.fullName,
-            ),
-            const Divider(height: 24),
-            buildProfileItem(
-              Icons.alternate_email,
-              'Username',
-              profile!.userName,
-            ),
-            const Divider(height: 24),
-            buildProfileItem(
-              Icons.email_outlined,
-              'Email',
-              profile!.emailAddress,
-            ),
-            const Divider(height: 24),
+            buildProfileItem(Icons.person_outline, 'Full Name', profile!.fullName),
+            const Divider(height: 32),
+            buildProfileItem(Icons.alternate_email, 'Username', profile!.userName),
+            const Divider(height: 32),
+            buildProfileItem(Icons.email_outlined, 'Email', profile!.emailAddress),
+            const Divider(height: 32),
             buildProfileItem(
               Icons.circle_outlined,
               'Status',
               profile!.isActive ? 'Active' : 'Inactive',
               statusColor: profile!.isActive ? Colors.green : Colors.orange,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: _confirmLogout,
-                icon: const Icon(Icons.logout, size: 20),
-                label: const Text('Logout'),
+                icon: const Icon(Icons.logout),
+                label: const Text('Logout', style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ),
           ],
@@ -275,7 +292,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       ),
     );
   }
-
   Widget buildProfileItem(
     IconData icon,
     String label,
@@ -285,46 +301,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 24, color: Colors.grey[600]),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 24, color: Colors.blue.shade700),
+        ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              ),
-              const SizedBox(height: 4),
+              Text(label, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+              const SizedBox(height: 6),
               if (statusColor != null)
                 Row(
                   children: [
                     Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        shape: BoxShape.circle,
-                      ),
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      value,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                   ],
                 )
               else
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
             ],
           ),
         ),
@@ -332,6 +337,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
+  // ✅ Refresh Button
   Widget buildRefreshButton() {
     return OutlinedButton.icon(
       style: OutlinedButton.styleFrom(
@@ -344,20 +350,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       icon: const Icon(Icons.refresh, size: 20),
       label: const Text(
         'Refresh Profile',
-        style: TextStyle(fontWeight: FontWeight.w500),
-      ),
-    );
-  }
-
-  Widget buildLogoutButton() {
-    return FloatingActionButton.extended(
-      onPressed: _confirmLogout,
-      backgroundColor: Colors.red[50],
-      foregroundColor: Colors.red,
-      elevation: 1,
-      icon: const Icon(Icons.logout, size: 20),
-      label: const Text(
-        'Logout',
         style: TextStyle(fontWeight: FontWeight.w500),
       ),
     );

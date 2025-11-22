@@ -43,25 +43,39 @@ class Userservices {
     }
   }
 
-  Future<List<VehicleResponse>> getMyVehicles(VehicalRequest request) async {
+  Future<List<VehicleResponse>> getMyVehiclesByNationalNumber(
+    VehicalRequest request,
+  ) async {
     try {
       final token = await secureStorage.getAccessToken();
       if (token == null) throw Exception('No access token available');
 
       final response = await apiService.post(
-        ApiConstants.getMyVehical,
+        ApiConstants.getMyVehicalByNationalNumber,
         data: request.toJson(),
         options: Options(headers: _buildHeaders(token)),
       );
       if (response.statusCode == 200) {
         final responseData = response.data;
-        if (responseData['message'] == 'Success') {
-          final vehicles = (responseData['data'] as List)
-              .map((json) => VehicleResponse.fromJson(json))
-              .toList();
-          await saveVehiclesToStorage(vehicles);
-          return vehicles;
+        final data = responseData['data'];
+
+        List<VehicleResponse> vehicles = [];
+
+        if (data != null) {
+          if (data is List) {
+            vehicles = data
+                .map(
+                  (json) =>
+                      VehicleResponse.fromJson(Map<String, dynamic>.from(json)),
+                )
+                .toList();
+          } else if (data is Map) {
+            vehicles = [
+              VehicleResponse.fromJson(Map<String, dynamic>.from(data)),
+            ];
+          }
         }
+        return vehicles;
       } else {
         throw Exception('Failed to load Vehical: ${response.statusCode}');
       }
@@ -76,6 +90,56 @@ class Userservices {
       if (savedVehicles.isNotEmpty) {
         return savedVehicles;
       }
+    }
+    throw Exception('Failed to load vehicles');
+  }
+
+  Future<List<VehicleResponse>> getMyVehicles(VehicalRequest request) async {
+    try {
+      final token = await secureStorage.getAccessToken();
+      if (token == null) throw Exception('No access token available');
+
+      final response = await apiService.post(
+        ApiConstants.getMyVehical,
+        data: request.toJson(),
+        options: Options(headers: _buildHeaders(token)),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        if (responseData['message'] == 'Success') {
+          List<VehicleResponse> vehicles = (responseData['data'] as List)
+              .map((json) => VehicleResponse.fromJson(json))
+              .toList();
+
+          if (vehicles.isEmpty) {
+            vehicles = await getMyVehiclesByNationalNumber(request);
+            if(vehicles.isNotEmpty){
+              VehicalRequest newRequest = VehicalRequest(
+                nationalNumber: request.nationalNumber,
+                isInfo: false,
+              );
+              await getMyVehiclesByNationalNumber(newRequest);
+              return vehicles;
+            }
+          }
+
+          await saveVehiclesToStorage(vehicles);
+          return vehicles;
+        }
+      } else {
+        throw Exception('Failed to load Vehicle: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await secureStorage.clearTokens();
+        throw UnauthorizedException('Session expired. Please login again.');
+      }
+      throw Exception('Failed to load Vehicle: ${e.message}');
+    } catch (e) {
+      final savedVehicles = await getSavedVehicles();
+      if (savedVehicles.isNotEmpty) return savedVehicles;
+      throw Exception('Failed to load vehicles: $e');
     }
     throw Exception('Failed to load vehicles');
   }

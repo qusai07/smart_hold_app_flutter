@@ -1,12 +1,14 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_hold_app/Models/UserProfile.dart';
 import 'package:smart_hold_app/Models/Vehicles/RequestsModel/VehicalRequest.dart';
 import 'package:smart_hold_app/Models/Vehicles/ResponseModel/VehicalResponse.dart';
 import 'package:smart_hold_app/Security/SecureStorage.dart';
 import 'package:smart_hold_app/Services/BackEndService/ApiService.dart';
 import 'package:smart_hold_app/Services/UserService/UserServices.dart';
-import 'package:smart_hold_app/screens/UserProfile.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:smart_hold_app/screens/UserProfile.dart';
+import 'package:smart_hold_app/screens/VehicleDetailsScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String nationalNumber;
@@ -20,6 +22,12 @@ class HomeScreen extends StatefulWidget {
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
+  Future<void> logout(BuildContext context) async {
+    final secureStorage = SecureStorage();
+    await secureStorage.clearTokens(); // Clear saved tokens
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil('/login', (route) => false); // Go to login
+  }
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -27,6 +35,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late final SecureStorage secureStorage;
   late final Userservices userService;
+  late UserProfile _userProfile = UserProfile(
+    userName: '',
+    emailAddress: '',
+    isActive: false,
+    id: '',
+    fullName: '',
+  );
+
   List<VehicleResponse> _vehicles = [];
   bool _isLoading = false;
   String? _error;
@@ -39,151 +55,88 @@ class _HomeScreenState extends State<HomeScreen> {
       apiService: ApiService(),
       secureStorage: secureStorage,
     );
+    loadUserProfile();
     loadVehicles();
   }
 
   Future<void> loadVehicles() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
+    setState(() => _isLoading = true);
     try {
-      // Try to load from API first
       final request = VehicalRequest(
         nationalNumber: widget.nationalNumber,
         isInfo: true,
       );
       final vehicles = await userService.getMyVehicles(request);
-      setState(() {
-        _vehicles = vehicles;
-        _isLoading = false;
-      });
+      setState(() => _vehicles = vehicles);
     } catch (e) {
-      // If API fails, try to load from storage
-      try {
-        final savedVehicles = await userService.getSavedVehicles();
-        setState(() {
-          _vehicles = savedVehicles;
-          _error = 'Using cached data: ${e.toString()}';
-        });
-      } catch (storageError) {
-        setState(() {
-          _error = 'Failed to load: ${e.toString()}';
-        });
-      }
+      setState(() => _error = e.toString());
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
+  Future<void> loadUserProfile() async {
+    try {
+      final profile = await userService.fetchUserProfile();
+      setState(() => _userProfile = profile);
+    } catch (_) {}
+  }
+
+  Future<void> logout(BuildContext context) async {
+    final secureStorage = SecureStorage();
+    await secureStorage.clearTokens(); // Clear saved tokens
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil('/login', (route) => false); // Go to login
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      drawer: _buildDrawer(context),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        title: const Text(
+          'My Vehicles',
+          style: TextStyle(
+            color: Color.fromARGB(255, 255, 255, 255), // better contrast
+          ),
         ),
-        title: const Text('My Vehicles'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-          ),
-        ],
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.logout_rounded, color: Color.fromARGB(255, 235, 226, 226)),
+          onPressed: () => logout(context),
+        ),
       ),
-      body: buildContent(),
-    );
-  }
-
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      width: MediaQuery.of(context).size.width * 0.75,
-      child: Column(
-        children: [
-          UserAccountsDrawerHeader(
-            accountName: const Text("John Doe"),
-            accountEmail: const Text("john@example.com"),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Text(
-                "JD",
-                style: TextStyle(
-                  fontSize: 24,
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
-            ),
-            decoration: BoxDecoration(color: Theme.of(context).primaryColor),
+      drawer: _buildDrawer(context),
+      body: Container(
+        padding: const EdgeInsets.only(top: 20),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text('Profile'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => UserProfileScreen(token: widget.token),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () {
-              /* Navigate to settings */
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Logout'),
-            onTap: () {
-              /* Handle logout */
-            },
-          ),
-        ],
+        ),
+        child: _buildBodyContent(),
       ),
     );
   }
 
-  Widget buildContent() {
+  Widget _buildBodyContent() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator.adaptive());
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+      );
     }
 
     if (_error != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              _error!,
-              style: const TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
-              onPressed: loadVehicles,
-            ),
-          ],
+        child: Text(
+          _error!,
+          style: const TextStyle(color: Colors.white70, fontSize: 16),
+          textAlign: TextAlign.center,
         ),
       );
     }
@@ -193,212 +146,224 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/no_vehicles.png', height: 150),
+            Icon(Icons.directions_car_rounded, color: Colors.white54, size: 80),
             const SizedBox(height: 16),
             const Text(
               'No Vehicles Found',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             const Text(
               'Add your first vehicle to get started',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: Colors.white70),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
+              onPressed: () => loadVehicles(),
               icon: const Icon(Icons.add),
               label: const Text('Add Vehicle'),
-              onPressed: () {}, // Add your navigation here
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromRGBO(0, 191, 165, 1),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
           ],
         ),
       );
     }
 
-    return AnimationLimiter(
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.85,
-        ),
-        itemCount: _vehicles.length,
-        itemBuilder: (context, index) {
-          return AnimationConfiguration.staggeredGrid(
-            position: index,
-            duration: const Duration(milliseconds: 500),
-            columnCount: 2,
-            child: ScaleAnimation(
-              child: FadeInAnimation(
-                child: _buildVehicleCard(_vehicles[index]),
+  return SafeArea(
+  child: AnimationLimiter(
+    child: ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      itemCount: _vehicles.length,
+      itemBuilder: (context, index) {
+        final vehicle = _vehicles[index];
+        return AnimationConfiguration.staggeredList(
+          position: index,
+          duration: const Duration(milliseconds: 500),
+          child: SlideAnimation(
+            horizontalOffset: 50,
+            child: FadeInAnimation(
+              child: Hero(
+                tag: vehicle.id,
+                child: _buildHorizontalVehicleCard(vehicle),
               ),
             ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildVehicleCard(VehicleResponse vehicle) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () => _showVehicleDetails(context, vehicle),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Icon(
-                  Icons.directions_car,
-                  size: 60,
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '${vehicle.model} ${vehicle.type}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                vehicle.plateNumber,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              ),
-              const Spacer(),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      vehicle.color,
-                      style: TextStyle(
-                        color: Colors.blue[800],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    DateFormat('yyyy').format(vehicle.registrationDate),
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showVehicleDetails(BuildContext context, VehicleResponse vehicle) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.85,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Container(
-                width: 60,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Icon(
-                          Icons.directions_car,
-                          size: 100,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildDetailItem(
-                        'Model',
-                        '${vehicle.model} ${vehicle.type}',
-                      ),
-                      _buildDetailItem('Plate Number', vehicle.plateNumber),
-                      _buildDetailItem('Color', vehicle.color),
-                      _buildDetailItem(
-                        'Registration Date',
-                        DateFormat(
-                          'MMMM dd, yyyy',
-                        ).format(vehicle.registrationDate),
-                      ),
-                      _buildDetailItem(
-                        'Owner Number',
-                        vehicle.ownerNationalNumber,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
           ),
         );
       },
-    );
-  }
+    ),
+  ),
+);
 
-  Widget _buildDetailItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+  
+  }
+Widget _buildHorizontalVehicleCard(VehicleResponse vehicle) {
+  return InkWell(
+    borderRadius: BorderRadius.circular(16),
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VehicleDetailsScreen(vehicle: vehicle),
+        ),
+      );
+    },
+    child: Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white24, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(2, 4),
           ),
         ],
       ),
-    );
-  }
+      child: Row(
+        children: [
+          Icon(Icons.car_rental,
+              size: 60, color: Colors.tealAccent[400]),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${vehicle.model} ${vehicle.type}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  vehicle.plateNumber,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.tealAccent.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        vehicle.color,
+                        style: const TextStyle(
+                          color: Colors.tealAccent,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      DateFormat('yyyy').format(vehicle.registrationDate),
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
-
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('UserProfile')),
-      body: const Center(child: Text('Profile Content')),
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      backgroundColor: const Color(0xFF1B262C),
+      child: Column(
+        children: [
+          UserAccountsDrawerHeader(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF0F2027), Color(0xFF2C5364)],
+              ),
+            ),
+            accountName: Text(
+              _userProfile.fullName,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            accountEmail: Text(_userProfile.emailAddress),
+            currentAccountPicture: CircleAvatar(
+              backgroundColor: Colors.tealAccent[400],
+              child: Text(
+                _userProfile.userName.isNotEmpty
+                    ? _userProfile.userName.substring(0, 2).toUpperCase()
+                    : "?",
+                style: const TextStyle(color: Colors.white, fontSize: 22),
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person, color: Colors.white70),
+            title: const Text(
+              'Profile',
+              style: TextStyle(color: Colors.white70),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => UserProfileScreen(token: widget.token),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings, color: Colors.white70),
+            title: const Text(
+              'Settings',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+          const Spacer(),
+          const Divider(color: Colors.white24),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.redAccent),
+            title: const Text(
+              'Logout',
+              style: TextStyle(color: Colors.redAccent),
+            ),
+            onTap: () async {
+              await secureStorage.clearTokens();
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/login', (route) => false);
+            },
+          ),
+        ],
+      ),
     );
   }
 }

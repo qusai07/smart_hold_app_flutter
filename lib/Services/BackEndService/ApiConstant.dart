@@ -3,6 +3,9 @@ import 'package:smart_hold_app/Config/ApiConfig.dart';
 class ApiConstants {
   static String get login => ApiConfig.buildPath('Auth/Login');
   static String get signUp => ApiConfig.buildPath('Auth/SignUp');
+  static String get logout => ApiConfig.buildPath('Auth/Logout');
+  static String get verifyOtp => ApiConfig.buildPath('Auth/SignUpVerifyOtp');
+
   static String get refreshToken => ApiConfig.buildPath('Auth/RefreshToken');
   static String get getUserProfile => ApiConfig.buildPath('Auth/GetProfile');
   static String get changePassword =>
@@ -12,11 +15,13 @@ class ApiConstants {
   static String get uploadProfilePicture =>
       ApiConfig.buildPath('Auth/uploadProfilePicture');
 
-  static String get getViolationsForUser =>
-      ApiConfig.buildPath('Violations/api/GetViolationsForUser');
+  static String get getMyViolations=> ApiConfig.buildPath('Violations/GetMyViolations');
+  static String get getMyViolationsNationalNumber=> ApiConfig.buildPath('Violations/GetViolationsByPlatNumber');
 
-  static String get getMyVehical =>
-      ApiConfig.buildPath('Vehicles/GetMyVehical');
+  static String get getMyVehical => ApiConfig.buildPath('Vehicles/GetMyVehical');
+  static String get getMyVehicalByNationalNumber => ApiConfig.buildPath('Vehicles/GetVehicalByNationalNumber');
+  static String get requestHold => ApiConfig.buildPath('Violations/submitHoldRequest');
+  static String get checkVehicalHold => ApiConfig.buildPath('Vehicles/checkVehicalHold');
 
   static String get userProfile => ApiConfig.buildPath('User/Profile');
 }

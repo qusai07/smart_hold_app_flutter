@@ -1,40 +1,29 @@
-import 'package:smart_hold_app/Models/Vehicles/ResponseModel/VehicalResponse.dart';
+import 'package:intl/intl.dart';
 
 class HoldRequest {
-  final String id;
-  final String plateNumber;
-  final DateTime startDate;
-  final DateTime endDate;
-  final String location;
-  final DateTime requestDate;
-  final bool isStart;
   final String vehicleId;
-  final VehicleResponse? vehicle;
+  final DateTime startDate;
+  final String location;
+
   HoldRequest({
-    required this.id,
-    required this.plateNumber,
-    required this.startDate,
-    required this.endDate,
-    required this.location,
-    required this.requestDate,
-    required this.isStart,
     required this.vehicleId,
-    this.vehicle,
+    required this.startDate,
+    required this.location,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'VehicleId': vehicleId,
+      'StartDate': "${DateFormat('yyyy-MM-dd').format(startDate)}T00:00:00",
+      'Location': location,
+    };
+  }
 
   factory HoldRequest.fromJson(Map<String, dynamic> json) {
     return HoldRequest(
-      id: json['id'],
-      plateNumber: json['plateNumber'],
-      startDate: DateTime.parse(json['startDate']),
-      endDate: DateTime.parse(json['endDate']),
-      location: json['location'],
-      requestDate: DateTime.parse(json['requestDate']),
-      isStart: json['isStart'],
-      vehicleId: json['vehicleId'],
-      vehicle: json['vehicle'] != null
-          ? VehicleResponse.fromJson(json['vehicle'])
-          : null,
+      vehicleId: json['VehicleId'],
+      startDate: DateTime.parse(json['StartDate']),
+      location: json['Location'],
     );
   }
 }

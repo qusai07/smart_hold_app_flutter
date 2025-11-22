@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:smart_hold_app/Models/login_model.dart';
+import 'package:smart_hold_app/Models/APIResponse.dart';
+import 'package:smart_hold_app/Models/OtpVerification.dart';
 import 'package:smart_hold_app/Models/signup_model.dart';
 import 'package:smart_hold_app/Security/SecureStorage.dart';
 import 'package:smart_hold_app/Security/TokenManager.dart';
-// import 'package:smart_hold_app/Models/signup_model.dart';
-// import 'package:smart_hold_app/Security/SecureStorage.dart';
 import 'package:smart_hold_app/Services/BackEndService/ApiConstant.dart';
 import 'package:smart_hold_app/Services/BackEndService/ApiService.dart';
 
@@ -44,9 +43,7 @@ class ApiAuthentication {
     }
   }
 
-  /// Handles user registration and returns [SignUpResponse]
-  /// Throws [ApiException] on failure
-  Future<SignUpResponse> signUp(SignUpRequest request) async {
+  Future<APIResponse> signUp(SignUpRequest request) async {
     try {
       final response = await apiService.post(
         ApiConstants.signUp,
@@ -59,31 +56,31 @@ class ApiAuthentication {
         ),
       );
 
-      // Validate successful response
       if (response.statusCode == 200 || response.statusCode == 201) {
-        try {
-          return SignUpResponse.fromJson(response.data);
-        } catch (e) {
+        final res = response.data;
+        if (res == null) {
           throw ApiException(
-            message: 'Failed to parse server response',
+            message: 'Empty or invalid response from server',
             statusCode: response.statusCode,
           );
         }
+        return APIResponse.fromJson(res);
       }
 
-      // Handle error responses
       throw ApiException(
-        message: _extractErrorMessage(response.data) ?? 'Registration failed',
+        message: (response.data is Map<String, dynamic>)
+            ? response.data['message'] ?? 'Registration failed'
+            : 'Registration failed',
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
       throw ApiException(
-        message: _extractErrorMessage(e.response?.data) ?? 'Network error',
+        message: e.response?.data['message'] ?? 'Network error',
         statusCode: e.response?.statusCode,
       );
     } catch (e) {
       throw ApiException(
-        message: 'Unexpected error occurred',
+        message: 'Unexpected error: ${e.toString()}',
         statusCode: null,
       );
     }
@@ -96,6 +93,72 @@ class ApiAuthentication {
           responseData['error']?.toString();
     }
     return null;
+  }
+
+  Future<Response> logout({required String refreshToken}) async {
+    try {
+      final response = await apiService.post(
+        ApiConstants.logout,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'refresher-token': refreshToken,
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        try {} catch (_) {}
+        try {
+          await secureStorage.clearTokens();
+        } catch (_) {}
+      }
+
+      return response;
+    } on DioException catch (e) {
+      throw ApiException(
+        message:
+            _extractErrorMessage(e.response?.data) ?? 'Network error on logout',
+        statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      throw ApiException(message: 'Logout failed: ${e.toString()}');
+    }
+  }
+
+  Future<APIResponse> verifyOtp(SignupVerifyOtpRequest request) async {
+    try {
+      final response = await apiService.post(
+        ApiConstants.verifyOtp,
+        data: request.toJson(),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return APIResponse.fromJson(response.data);
+      }
+
+      throw ApiException(
+        message: response.data?['message'] ?? 'OTP verification failed',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      throw ApiException(
+        message: e.response?.data ?? 'Network error',
+        statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      throw ApiException(
+        message: 'Unexpected error: ${e.toString()}',
+        statusCode: null,
+      );
+    }
   }
 }
 
@@ -146,13 +209,6 @@ class ApiException implements Exception {
 //   Future<Response?> checkServer() async {
 //     String url = ApiConstants.baseUrlWithPort;
 //     Response? response = await api.get(url);
-//     return response;
-//   }
-
-//   Future<Response> logout({required String refreshToken}) async {
-//     String url = AuthEndpoints.userLogout;
-//     final Map<String, dynamic> header = makeHeaders(refreshToken, true);
-//     Response response = await api.post(url, headers: header);
 //     return response;
 //   }
 
