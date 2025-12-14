@@ -1,4 +1,4 @@
-import 'package:smart_hold_app/Models/Vehicles/ResponseModel/HoldRequestResponse.dart';
+import 'package:smart_hold_app/Models/Vehicles/ResponseModel/hold_request_response.dart';
 
 class ViolationResponseAfterIntegration {
   final String id;
@@ -29,7 +29,7 @@ class ViolationResponseAfterIntegration {
 
     return ViolationResponseAfterIntegration(
       id: json['id'] ?? '',
-      vehicleId: vehicleJson?['vehicleId'],
+      vehicleId: vehicleJson?['vehicleId'] ?? '',
       plateNumber: vehicleJson?['plateNumber'],
       holdRequestId: holdJson?['id'],
       holdRequest: holdJson != null ? HoldRequestResponse.fromJson(holdJson) : null,

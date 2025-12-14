@@ -572,11 +572,101 @@ abstract class AppLocalizations {
   /// **'Inactive'**
   String get inactive;
 
-  /// No description provided for @refreshProfile.
+  /// No description provided for @refresh_profile.
   ///
   /// In en, this message translates to:
-  /// **'Refresh Profile'**
-  String get refreshProfile;
+  /// **'Refresh profile'**
+  String get refresh_profile;
+
+  /// No description provided for @logout.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get logout;
+
+  /// No description provided for @profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @tryagain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get tryagain;
+
+  /// No description provided for @profile_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile not found'**
+  String get profile_not_found;
+
+  /// No description provided for @select_language.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Language'**
+  String get select_language;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get start;
+
+  /// No description provided for @noViolationsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No violations'**
+  String get noViolationsMessage;
+
+  /// No description provided for @violationFoundMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Violation found'**
+  String get violationFoundMessage;
+
+  /// No description provided for @general.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get general;
+
+  /// No description provided for @preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get preferences;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'App Version'**
+  String get appVersion;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @settingsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings saved successfully'**
+  String get settingsSaved;
 }
 
 class _AppLocalizationsDelegate

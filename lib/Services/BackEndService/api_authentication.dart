@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
-import 'package:smart_hold_app/Models/APIResponse.dart';
-import 'package:smart_hold_app/Models/OtpVerification.dart';
+import 'package:smart_hold_app/Models/api_response.dart';
+import 'package:smart_hold_app/Models/otp_verification.dart';
 import 'package:smart_hold_app/Models/signup_model.dart';
-import 'package:smart_hold_app/Security/SecureStorage.dart';
-import 'package:smart_hold_app/Security/TokenManager.dart';
-import 'package:smart_hold_app/Services/BackEndService/ApiConstant.dart';
-import 'package:smart_hold_app/Services/BackEndService/ApiService.dart';
+import 'package:smart_hold_app/Security/secure_storage.dart';
+import 'package:smart_hold_app/Security/token_manager.dart';
+import 'package:smart_hold_app/Services/BackEndService/api_constant.dart';
+import 'package:smart_hold_app/Services/BackEndService/api_service.dart';
 
 class ApiAuthentication {
   final ApiService apiService;
@@ -86,7 +86,6 @@ class ApiAuthentication {
     }
   }
 
-  /// Extracts error message from API response
   String? _extractErrorMessage(dynamic responseData) {
     if (responseData is Map<String, dynamic>) {
       return responseData['message']?.toString() ??

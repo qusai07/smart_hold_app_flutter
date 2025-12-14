@@ -21,8 +21,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   void initState() {
     super.initState();
-
-    // Button pulse animation
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
@@ -123,8 +121,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           ),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 28,
-                            vertical: 14,
+                            horizontal: 20,
+                            vertical: 10,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
@@ -132,9 +130,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         ),
                         onPressed: goToLogin,
                         child: Text(
-                          _currentLocale.languageCode == 'ar'
-                              ? 'ابدأ'
-                              : 'Start',
+                          AppLocalizations.of(context)!.start,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,

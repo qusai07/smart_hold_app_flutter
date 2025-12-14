@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:smart_hold_app/Language/app_localizations.dart';
-import '../Models/Vehicles/ResponseModel/VehicalResponse.dart';
-import '../Services/BackEndService/ApiService.dart';
-import '../Services/UserService/ViolationService.dart';
-import '../Security/SecureStorage.dart';
-import 'ViolationsScreen.dart';
+import 'package:smart_hold_app/Models/Vehicles/RequestsModel/viloation_request_model.dart';
+import '../Models/Vehicles/ResponseModel/vehical_response.dart';
+import '../Services/BackEndService/api_service.dart';
+import '../Services/UserService/volation_service.dart';
+import '../Security/secure_storage.dart';
+import 'violations_screen.dart';
 import 'package:lottie/lottie.dart';
 
 class VehicleDetailsScreen extends StatefulWidget {
@@ -36,20 +37,23 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
   Future<void> _checkVehicleHold() async {
     setState(() => _isChecking = true);
     try {
-      final myViolations = await violationService.getMyViolations();
       final vehicle = widget.vehicle;
-      if (myViolations.isNotEmpty) {
-        setState(() => _canViewViolations = true);
-      } else {
-        final vehicleViolations = await violationService
-            .getMyViolationsByNationalNumber(vehicle.plateNumber, true);
-        if (vehicleViolations.isNotEmpty) {
-          final secondCheck = await violationService
-              .getMyViolationsByNationalNumber(vehicle.plateNumber, false);
+      final result = await violationService.getMyViolations(
+        ViolationRequestModel(plateNumber: vehicle.plateNumber),
+      );
 
+      if (result.violations.isNotEmpty || result.message == 'VehiclesRegisteredSuccessfully') {
+        setState(() => _canViewViolations = true);
+      } else if (result.message == 'NoViolationsOnVehicles') {
+        setState(() => _canViewViolations = false);
+      } else {
+        // Fallback: try the national number lookup used elsewhere
+        final vehicleViolations = await violationService.getMyViolationsByNationalNumber(vehicle.plateNumber, true);
+        if (vehicleViolations.isNotEmpty) {
+          final secondCheck = await violationService.getMyViolationsByNationalNumber(vehicle.plateNumber, false);
           setState(() => _canViewViolations = secondCheck.isNotEmpty);
         } else {
-          setState(() => _canViewViolations = true);
+          setState(() => _canViewViolations = false);
         }
       }
     } catch (e) {
@@ -117,7 +121,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
 
               if (_canViewViolations)
                 Padding(
-                  padding: const EdgeInsets.only(top: 20),
+                  padding: EdgeInsets.only(top: 20),
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -125,9 +129,8 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ViolationsScreen(),
-                            settings: RouteSettings(
-                              arguments: widget.vehicle.plateNumber,
+                            builder: (context) => ViolationsScreen(
+                              plateNumber: widget.vehicle.plateNumber,
                             ),
                           ),
                         );
@@ -155,7 +158,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
   }
 
   Widget _buildVehicleImage() => Container(
-    height: 200, // Adjust height as needed
+    height: 200,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(16),
       boxShadow: [
@@ -165,7 +168,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
           offset: const Offset(0, 0),
         ),
       ],
-      color: Colors.transparent, // transparent background
+      color: Colors.transparent,
     ),
     child: ClipRRect(
       borderRadius: BorderRadius.circular(16),

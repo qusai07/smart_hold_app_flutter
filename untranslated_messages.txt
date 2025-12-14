@@ -1,6 +1,10 @@
 {
   "ar": [
     "welcomeHome",
-    "refreshProfile"
+    "tryagain",
+    "profile_not_found",
+    "notifications",
+    "noViolationsMessage",
+    "violationFoundMessage"
   ]
 }

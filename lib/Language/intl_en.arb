@@ -79,5 +79,21 @@
   "status": "Status",
   "active": "Active",
   "inactive": "Inactive",
-  "refreshProfile": "Refresh Profile"
+  "refresh_profile": "Refresh Profile",
+  "logout":"Logout",
+  "profile":"Profile",
+  "settings":"Settings",
+  "tryagain":"Try again",
+  "profile_not_found":"Profile not found",
+  "refresh_profile":"Refresh profile",
+  "select_language":"Select Language",
+  "notifications":"Notifications",
+  "start":"Start",
+  "noViolationsMessage":"No violations",
+  "violationFoundMessage":"Violation found",
+  "general": "General",
+  "preferences": "Preferences",
+  "appVersion": "App Version",
+  "save": "Save",
+  "settingsSaved": "Settings saved successfully"
 }

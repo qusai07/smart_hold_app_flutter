@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:smart_hold_app/Language/app_localizations.dart';
-import 'package:smart_hold_app/Models/Vehicles/RequestsModel/HoldRequest.dart';
-import 'package:smart_hold_app/Models/Vehicles/ResponseModel/ViolationResponseAfterIntegration.dart';
-import 'package:smart_hold_app/Services/UserService/ViolationService.dart';
-import 'package:smart_hold_app/Services/BackEndService/ApiService.dart';
-import 'package:smart_hold_app/Security/SecureStorage.dart';
+import 'package:smart_hold_app/Models/Vehicles/RequestsModel/hold_request.dart';
+import 'package:smart_hold_app/Models/Vehicles/RequestsModel/viloation_request_model.dart';
+import 'package:smart_hold_app/Models/Vehicles/ResponseModel/violation_response_after_integration.dart';
+import 'package:smart_hold_app/Services/UserService/volation_service.dart';
+import 'package:smart_hold_app/Services/BackEndService/api_service.dart';
+import 'package:smart_hold_app/Security/secure_storage.dart';
 
 class ViolationsScreen extends StatefulWidget {
-  const ViolationsScreen({super.key});
+  final String plateNumber; 
+  const ViolationsScreen({super.key, required this.plateNumber});
 
   @override
   State<ViolationsScreen> createState() => _ViolationsScreenState();
@@ -21,8 +23,6 @@ class _ViolationsScreenState extends State<ViolationsScreen> {
 
   bool _isLoading = true;
   String? _error;
-  String? plateNumber;
-
   @override
   void initState() {
     super.initState();
@@ -30,79 +30,33 @@ class _ViolationsScreenState extends State<ViolationsScreen> {
       apiService: ApiService(),
       secureStorage: SecureStorage(),
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+    _loadViolations();
+  });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (plateNumber == null) {
-      final args = ModalRoute.of(context)?.settings.arguments;
-      if (args != null && args is String) {
-        plateNumber = args;
-        _loadViolations();
-      } else {
-        setState(() {
-          _isLoading = false;
-          _error = 'Plate number not provided';
-        });
-      }
-    }
-  }
-
-  Future<void> _loadViolations() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+ Future<void> _loadViolations() async {
+  setState(() {
+    _isLoading = true;
+    _error = null;
+  });
 
     try {
-      if (plateNumber == null) throw Exception('No plate number provided');
+      final result = await _violationService.getMyViolations(
+        ViolationRequestModel(plateNumber: widget.plateNumber),
+      );
 
-      List<ViolationResponseAfterIntegration> violations =
-          await _violationService.getMyViolations();
-
-      if (violations.isEmpty) {
-        final possibleViolations = await _violationService
-            .getMyViolationsByNationalNumber(plateNumber!, true);
-
-        if (possibleViolations.isNotEmpty) {
-          final confirm = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text(AppLocalizations.of(context)!.noViolationsFound),
-              content: Text(
-                AppLocalizations.of(context)!.violation_found_message,
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: Text(AppLocalizations.of(context)!.no),
-                ),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: Text(AppLocalizations.of(context)!.yes),
-                ),
-              ],
-            ),
-          );
-
-          if (confirm == true) {
-            await _violationService.getMyViolationsByNationalNumber(
-              plateNumber!,
-              false,
-            );
-            violations = await _violationService.getMyViolations();
-          }
-        }
-      }
-
-      setState(() => _afterviolations = violations);
-    } catch (e) {
-      setState(() => _error = e.toString());
-    } finally {
-      setState(() => _isLoading = false);
-    }
+      setState(() {
+        _afterviolations = result.violations;
+      });
+  } catch (e) {
+    setState(() => _error = e.toString());
+  } finally {
+    setState(() => _isLoading = false);
   }
+}
+
 
   Future<void> _requestHold(HoldRequest request) async {
     setState(() {
@@ -234,7 +188,7 @@ class _ViolationsScreenState extends State<ViolationsScreen> {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0D223C).withOpacity(0.1),
+        color: const Color(0xFF0D223C),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color.fromARGB(60, 12, 123, 175)),
       ),
@@ -257,21 +211,18 @@ class _ViolationsScreenState extends State<ViolationsScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            AppLocalizations.of(context)!.violationDate +
-                " " +
-                ': ${DateFormat('yyyy-MM-dd').format(violation.violationDate)}',
+            '${AppLocalizations.of(context)!.violationDate}: ${DateFormat('yyyy-MM-dd').format(violation.violationDate)}',
             style: const TextStyle(color: Colors.white70),
           ),
+
           Text(
-            AppLocalizations.of(context)!.holdDuration +
-                " " +
-                ': ${violation.holdDuration} days',
+            '${AppLocalizations.of(context)!.holdDuration}: ${violation.holdDuration} days',
             style: const TextStyle(color: Colors.white70),
           ),
+
           const SizedBox(height: 16),
 
           if (isActiveHold) ...[
-            // Timer و Progress bar كما هو
             Center(
               child: SizedBox(
                 width: 250,
@@ -367,7 +318,7 @@ class _ViolationsScreenState extends State<ViolationsScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: const Color(0xFF203A43),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.white24),
                   ),

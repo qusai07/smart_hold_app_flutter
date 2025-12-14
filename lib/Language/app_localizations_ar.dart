@@ -251,5 +251,50 @@ class AppLocalizationsAr extends AppLocalizations {
   String get inactive => 'غير نشط';
 
   @override
-  String get refreshProfile => 'Refresh Profile';
+  String get refresh_profile => 'تحديث الملف الشخصي';
+
+  @override
+  String get logout => 'تسجيل الخروج';
+
+  @override
+  String get profile => 'الملف الشخصي';
+
+  @override
+  String get settings => 'الإعدادات';
+
+  @override
+  String get tryagain => 'Try again';
+
+  @override
+  String get profile_not_found => 'Profile not found';
+
+  @override
+  String get select_language => 'اختر اللغه';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get start => 'ابدأ';
+
+  @override
+  String get noViolationsMessage => 'No violations';
+
+  @override
+  String get violationFoundMessage => 'Violation found';
+
+  @override
+  String get general => 'عام';
+
+  @override
+  String get preferences => 'التفضيلات';
+
+  @override
+  String get appVersion => 'إصدار التطبيق';
+
+  @override
+  String get save => 'حفظ';
+
+  @override
+  String get settingsSaved => 'تم حفظ الإعدادات بنجاح';
 }

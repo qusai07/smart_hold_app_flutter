@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:smart_hold_app/Security/SecureStorage.dart';
-import 'package:smart_hold_app/screens/UserProfile.dart';
-import 'package:smart_hold_app/screens/VerifyOtpPage.dart';
-import 'package:smart_hold_app/screens/homeScreen.dart';
-import 'package:smart_hold_app/screens/signupScreen.dart';
+import 'package:smart_hold_app/Security/secure_storage.dart';
+import 'package:smart_hold_app/screens/user_profile.dart';
+import 'package:smart_hold_app/screens/verify_otp_page.dart';
+import 'package:smart_hold_app/screens/home_screen.dart';
+import 'package:smart_hold_app/screens/signup_screen.dart';
 import 'package:smart_hold_app/screens/welcome_screen.dart';
 import 'package:smart_hold_app/screens/login_screen.dart';
 import 'Language/app_localizations.dart';
@@ -25,7 +25,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Locale _locale = const Locale('en');
 
-  // Call this to change app language
   void setLocale(Locale locale) {
     setState(() {
       _locale = locale;
@@ -38,9 +37,9 @@ class _MyAppState extends State<MyApp> {
       title: 'Smart Vehicle',
       navigatorKey: navigatorKey,
       theme: ThemeData(primarySwatch: Colors.blue),
-      locale: _locale, // Current app locale
+      locale: _locale, 
       supportedLocales: const [Locale('en', ''), Locale('ar', '')],
-      localizationsDelegates: const [
+      localizationsDelegates: [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -76,7 +75,7 @@ class _MyAppState extends State<MyApp> {
             if (snapshot.hasData && snapshot.data != null) {
               return UserProfileScreen(token: snapshot.data!);
             }
-            return const LoginScreen(); // Redirect to login if no token
+            return const LoginScreen(); 
           },
         ),
         '/homeScreen': (context) {

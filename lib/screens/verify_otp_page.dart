@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:smart_hold_app/Models/OtpVerification.dart';
-import 'package:smart_hold_app/Security/SecureStorage.dart';
-import 'package:smart_hold_app/Services/BackEndService/ApiAuthentication.dart';
-import 'package:smart_hold_app/Services/BackEndService/ApiService.dart';
+import 'package:smart_hold_app/Models/otp_verification.dart';
+import 'package:smart_hold_app/Security/secure_storage.dart';
+import 'package:smart_hold_app/Services/BackEndService/api_authentication.dart';
+import 'package:smart_hold_app/Services/BackEndService/api_service.dart';
 
 class VerifyOtpPage extends StatefulWidget {
   final String id;
@@ -117,7 +117,6 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  // OTP Input
                   TextField(
                     controller: otpController,
                     keyboardType: TextInputType.number,
@@ -138,7 +137,6 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                   if (errorMessage != null)
                     Text(errorMessage!, style: const TextStyle(color: Colors.redAccent)),
                   const SizedBox(height: 20),
-                  // Verify Button
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -146,7 +144,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                       onPressed: isLoading ? null : verifyOtp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromRGBO(108, 167, 193, 1),
-                        shadowColor: Colors.black.withOpacity(0.5),
+                        shadowColor: Colors.black,
                         elevation: 8,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

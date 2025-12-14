@@ -2,10 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "QusaiSim",
+      "name": "Qusai",
       "request": "launch",
       "type": "dart",
-      "deviceId": "E4B8A1A7-356E-41C1-B01F-1E9A82B4543D",
+      "deviceId": "0F7D79E4-009A-4147-876B-9677351C67C0",
       "program": "lib/main.dart",
       "flutterMode": "debug"
     },

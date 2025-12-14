@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:smart_hold_app/Language/app_localizations.dart';
-import 'package:smart_hold_app/screens/signupScreen.dart';
-import 'package:smart_hold_app/screens/homeScreen.dart';
-import 'package:smart_hold_app/Security/SecureStorage.dart';
-import 'package:smart_hold_app/Services/BackEndService/ApiAuthentication.dart';
-import 'package:smart_hold_app/Services/BackEndService/ApiService.dart';
+import 'package:smart_hold_app/screens/signup_screen.dart';
+import 'package:smart_hold_app/screens/home_screen.dart';
+import 'package:smart_hold_app/Security/secure_storage.dart';
+import 'package:smart_hold_app/Services/BackEndService/api_authentication.dart';
+import 'package:smart_hold_app/Services/BackEndService/api_service.dart';
 import 'package:dio/dio.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -104,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen>
         context,
         MaterialPageRoute(
           builder: (context) =>
-              HomeScreen(nationalNumber: '9991035208', token: token),
+              HomeScreen(nationalNumber: '0000000000', token: token),
         ),
       );
     }
@@ -128,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen>
         context,
         MaterialPageRoute(
           builder: (context) =>
-              HomeScreen(nationalNumber: '9991035208', token: token),
+              HomeScreen(nationalNumber: '0000000000', token: token),
         ),
       );
       setState(() => isLoading = false);

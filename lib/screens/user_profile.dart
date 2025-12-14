@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:smart_hold_app/Models/UserProfile.dart';
-import 'package:smart_hold_app/Security/SecureStorage.dart';
-import 'package:smart_hold_app/Services/BackEndService/ApiService.dart';
-import 'package:smart_hold_app/Services/UserService/UserServices.dart';
+import 'package:smart_hold_app/Language/app_localizations.dart';
+import 'package:smart_hold_app/Models/user_profile.dart';
+import 'package:smart_hold_app/Security/secure_storage.dart';
+import 'package:smart_hold_app/Services/BackEndService/api_service.dart';
+import 'package:smart_hold_app/Services/UserService/user_services.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String token;
@@ -95,7 +96,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFF203A43),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         child: buildContent(context),
@@ -105,7 +106,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Widget buildContent(BuildContext context) {
     if (isLoading) {
-      return const Center(
+      return  Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -115,7 +116,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
             SizedBox(height: 16),
             Text(
-              'Loading Profile...',
+              AppLocalizations.of(context)!.button_Login,
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],
@@ -135,14 +136,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               child: Text(
                 error!,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: const Color.fromARGB(255, 0, 0, 0),
+                ),
               ),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.blue,
+                foregroundColor: const Color.fromARGB(255, 124, 23, 23),
+                backgroundColor: const Color(0xFF203A43),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
                   vertical: 12,
@@ -153,8 +157,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 elevation: 0,
               ),
               onPressed: loadUserProfile,
-              child: const Text(
-                'Try Again',
+              child: Text(
+                AppLocalizations.of(context)!.tryagain,
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),
             ),
@@ -164,14 +168,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
 
     if (profile == null) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.person_off, size: 48, color: Colors.grey),
             SizedBox(height: 16),
             Text(
-              'Profile not found',
+              AppLocalizations.of(context)!.profileNotFound,
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],
@@ -189,7 +193,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             background: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.blue.shade700, Colors.blue.shade400],
+                  colors: [
+                    const Color.fromARGB(255, 32, 58, 67),
+                    const Color.fromARGB(255, 33, 60, 70),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -199,7 +206,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundColor: Colors.white,
+                    backgroundColor: const Color.fromARGB(76, 7, 83, 108),
                     child: Text(
                       profile!.userName.length >= 2
                           ? profile!.userName.substring(0, 2).toUpperCase()
@@ -207,7 +214,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       style: const TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: Color.fromRGBO(5, 171, 208, 0.31),
                       ),
                     ),
                   ),
@@ -223,10 +230,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   const SizedBox(height: 4),
                   Text(
                     profile!.emailAddress,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.white70,
-                    ),
+                    style: const TextStyle(fontSize: 14, color: Colors.white70),
                   ),
                 ],
               ),
@@ -251,26 +255,39 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  // ✅ بطاقة Profile Card
   Widget buildProfileCard() {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      shadowColor: Colors.blue.shade100,
+      shadowColor: const Color.fromARGB(255, 240, 240, 240),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            buildProfileItem(Icons.person_outline, 'Full Name', profile!.fullName),
+            buildProfileItem(
+              Icons.person_outline,
+              AppLocalizations.of(context)!.fullName,
+              profile!.fullName,
+            ),
             const Divider(height: 32),
-            buildProfileItem(Icons.alternate_email, 'Username', profile!.userName),
+            buildProfileItem(
+              Icons.alternate_email,
+              AppLocalizations.of(context)!.username,
+              profile!.userName,
+            ),
             const Divider(height: 32),
-            buildProfileItem(Icons.email_outlined, 'Email', profile!.emailAddress),
+            buildProfileItem(
+              Icons.email_outlined,
+              AppLocalizations.of(context)!.email,
+              profile!.emailAddress,
+            ),
             const Divider(height: 32),
             buildProfileItem(
               Icons.circle_outlined,
-              'Status',
-              profile!.isActive ? 'Active' : 'Inactive',
+              AppLocalizations.of(context)!.status,
+              profile!.isActive
+                  ? AppLocalizations.of(context)!.active
+                  : AppLocalizations.of(context)!.inactive,
               statusColor: profile!.isActive ? Colors.green : Colors.orange,
             ),
             const SizedBox(height: 20),
@@ -278,13 +295,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: const Color.fromARGB(255, 62, 129, 152),
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 onPressed: _confirmLogout,
                 icon: const Icon(Icons.logout),
-                label: const Text('Logout', style: TextStyle(fontWeight: FontWeight.w600)),
+                label: Text(
+                  AppLocalizations.of(context)!.logout,
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
             ),
           ],
@@ -292,6 +314,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       ),
     );
   }
+
   Widget buildProfileItem(
     IconData icon,
     String label,
@@ -307,14 +330,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             color: Colors.blue.shade50,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, size: 24, color: Colors.blue.shade700),
+          child: Icon(
+            icon,
+            size: 24,
+            color: const Color.fromARGB(255, 124, 163, 202),
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+              Text(
+                label,
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              ),
               const SizedBox(height: 6),
               if (statusColor != null)
                 Row(
@@ -322,14 +352,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     Container(
                       width: 12,
                       height: 12,
-                      decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
                 )
               else
-                Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
             ],
           ),
         ),
@@ -337,19 +382,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  // ✅ Refresh Button
   Widget buildRefreshButton() {
     return OutlinedButton.icon(
       style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.blue,
-        side: const BorderSide(color: Colors.blue),
+        foregroundColor: const Color.fromARGB(255, 25, 122, 154),
+        side: const BorderSide(color: Color.fromARGB(255, 9, 85, 104)),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       onPressed: loadUserProfile,
       icon: const Icon(Icons.refresh, size: 20),
-      label: const Text(
-        'Refresh Profile',
+      label: Text(
+        AppLocalizations.of(context)!.refresh_profile,
         style: TextStyle(fontWeight: FontWeight.w500),
       ),
     );

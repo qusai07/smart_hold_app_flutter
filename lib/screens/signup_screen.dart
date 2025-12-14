@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:smart_hold_app/Language/app_localizations.dart';
 import 'package:smart_hold_app/Models/signup_model.dart';
-import 'package:smart_hold_app/Security/SecureStorage.dart';
-import 'package:smart_hold_app/Services/BackEndService/ApiAuthentication.dart';
-import 'package:smart_hold_app/Services/BackEndService/ApiService.dart';
+import 'package:smart_hold_app/Security/secure_storage.dart';
+import 'package:smart_hold_app/Services/BackEndService/api_authentication.dart';
+import 'package:smart_hold_app/Services/BackEndService/api_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -112,11 +112,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2C5364).withOpacity(0.7),
+        color: const Color(0xFF2C5364),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black,
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -153,7 +153,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Logo with shadow
                 Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFF2C5364),
@@ -194,12 +193,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-
-                // TextFields
                 _buildTextField(
                   controller: userNameController,
                   label: AppLocalizations.of(context)!.userName_textFields,
-
                   icon: Icons.person_outline,
                 ),
                 const SizedBox(height: 16),
@@ -252,7 +248,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Error message
                 if (errorMessage != null)
                   Text(
                     errorMessage!,
@@ -261,7 +256,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 const SizedBox(height: 20),
 
-                // Sign Up Button
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -273,11 +267,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         167,
                         193,
                         1,
-                      ), // main button color
-                      shadowColor: Colors.black.withOpacity(
-                        0.5,
-                      ), // shadow under the button
-                      elevation: 8, // make the shadow visible
+                      ), 
+                      shadowColor: Colors.black,
+                      elevation: 8,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -289,14 +281,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white, // text color
+                              color: Colors.white, 
                             ),
                           ),
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // Login link
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);

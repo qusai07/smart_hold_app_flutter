@@ -20,7 +20,6 @@ Future<void> showHoldRequestDialog(BuildContext context, String plateNumber, Str
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // --- Start Date Picker ---
                 InkWell(
                   onTap: () async {
                     DateTime now = DateTime.now();
@@ -38,7 +37,7 @@ Future<void> showHoldRequestDialog(BuildContext context, String plateNumber, Str
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.white24),
                     ),
@@ -57,7 +56,6 @@ Future<void> showHoldRequestDialog(BuildContext context, String plateNumber, Str
                   ),
                 ),
                 const SizedBox(height: 16),
-                // --- Location Field ---
                 TextField(
                   controller: locationController,
                   style: const TextStyle(color: Colors.white),

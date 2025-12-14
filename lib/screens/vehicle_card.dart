@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:smart_hold_app/Models/Vehicles/ResponseModel/VehicalResponse.dart';
+import 'package:smart_hold_app/Models/Vehicles/ResponseModel/vehical_response.dart';
 
 class VehicleCard extends StatelessWidget {
   final VehicleResponse vehicle;

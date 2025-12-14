@@ -141,7 +141,7 @@ class SecureStorage {
   }
 
   void logError(String message) {
-    print('SecureStorage Error: $message');
+    logError('SecureStorage Error: $message');
   }
 }
 

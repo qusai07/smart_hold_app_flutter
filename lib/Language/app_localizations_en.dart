@@ -250,5 +250,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inactive => 'Inactive';
 
   @override
-  String get refreshProfile => 'Refresh Profile';
+  String get refresh_profile => 'Refresh profile';
+
+  @override
+  String get logout => 'Logout';
+
+  @override
+  String get profile => 'Profile';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get tryagain => 'Try again';
+
+  @override
+  String get profile_not_found => 'Profile not found';
+
+  @override
+  String get select_language => 'Select Language';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get start => 'Start';
+
+  @override
+  String get noViolationsMessage => 'No violations';
+
+  @override
+  String get violationFoundMessage => 'Violation found';
+
+  @override
+  String get general => 'General';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get appVersion => 'App Version';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get settingsSaved => 'Settings saved successfully';
 }
